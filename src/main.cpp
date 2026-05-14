@@ -2,14 +2,14 @@
 #include <ESP8266WiFi.h>
   #include <ESP8266WebServer.h>
 
-  #define ssid "Airtel-3031"  
-  #define password "123456789"  
+  #define ssid "Airtel_3031"  
+  #define password "123456789000"  
   #define ssid_2 "DESKTOP-8NRTH60 va"
   #define password_2 "12345678900"
 
   ESP8266WebServer server(80);
 
-  const int pin_led_1 = D0;
+  #define pin_led_1 D4
 
   bool etat_pin_led_1 = 0;
 
@@ -17,8 +17,8 @@
   void handle_pin_led_1_on_off();
 
   void setup() 
-  { Serial.begin(115200);
-    WiFi.begin(ssid_2, password_2);
+  { Serial.begin(9600);
+    WiFi.begin(ssid, password);
 
     pinMode(pin_led_1, OUTPUT);
     
@@ -36,7 +36,6 @@
     
     server.on("/", handleRoot);                                // Page principale
     server.on("/pin_led_1/on_off", handle_pin_led_1_on_off);   // Route pour allumer/eteintre LED 1
-    server.on("/all_pin_leds/all_off", handle_all_pin_leds_off);   // Route pour allumer/eteintre LED 3
     
     server.begin();
     Serial.println("Serveur HTTP démarré");
@@ -70,9 +69,6 @@
 
   void handle_pin_led_1_on_off() 
   { etat_pin_led_1 = !etat_pin_led_1;
-    activation_allumage_generale = 0;
-    activation_extinction_generale=0;
     digitalWrite(pin_led_1, etat_pin_led_1);
-    (etat_pin_led_1) ? myDFPlayer.play(1) : myDFPlayer.play(3);
     handleRoot();
   }
