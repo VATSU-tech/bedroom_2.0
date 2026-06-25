@@ -1,94 +1,101 @@
 #include <Arduino.h>
-#include <WiFi.h>
 #include <ESPAsyncWebServer.h>
-#include <AsyncTCP.h>
 #include <SPIFFS.h>
+#include <WiFi.h>
 
-// Create AsyncWebServer object on port 80
+const char *ssid = "Airtel_3031";
+const char *password = "123456789000";
+
+const int led = 2;
+const int capteurLuminosite = 34;
+
 AsyncWebServer server(80);
 
-// LED Pin (GPIO 2 is the built-in LED on most ESP32 Dev Modules)
-const int ledPin = 2;
-
-// LDR / Analog sensor pin (GPIO 34 is an input-only ADC pin on ESP32)
-const int ldrPin = 34;
-
-void setup() {
-  // Initialize Serial Monitor
+void setup()
+{
+  //----------------------------------------------------Serial
   Serial.begin(115200);
-  delay(1000);
+  while(!Serial);
+  Serial.println("\n");
 
-  // Initialize LED Pin
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
+  //----------------------------------------------------GPIO
+  pinMode(led, OUTPUT);
+  digitalWrite(led, LOW);
+  pinMode(capteurLuminosite, INPUT);
 
-  // Initialize SPIFFS
-  // Setting the formatOnFail parameter to true will format SPIFFS if mount fails
-  if (!SPIFFS.begin(true)) {
-    Serial.println("An Error has occurred while mounting SPIFFS");
+  //----------------------------------------------------SPIFFS
+  if(!SPIFFS.begin())
+  {
+    Serial.println("Erreur SPIFFS...");
     return;
   }
-  Serial.println("SPIFFS mounted successfully");
 
-  // --- OPTION 1: Set up Access Point (AP Mode) ---
-  // Connect to SSID: "ESP32-DevModule" with password: "password123"
-  // Server will be accessible at http://192.168.4.1
-  WiFi.softAP("ESP32-DevModule", "password123");
-  Serial.print("Access Point started. IP Address: ");
-  Serial.println(WiFi.softAPIP());
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
 
-  // --- OPTION 2: Station Mode (STA Mode) ---
-  // To connect to your home Wi-Fi instead, uncomment this block and comment out the AP Mode lines.
-  /*
-  const char* ssid = "YOUR_WIFI_SSID";
-  const char* password = "YOUR_WIFI_PASSWORD";
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to Wi-Fi...");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  while(file)
+  {
+    Serial.print("File: ");
+    Serial.println(file.name());
+    file.close();
+    file = root.openNextFile();
   }
-  Serial.println("\nConnected to Wi-Fi!");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-  */
 
-  // --- WEB SERVER ROUTES ---
+  //----------------------------------------------------WIFI
+  WiFi.begin(ssid, password);
+	Serial.print("Tentative de connexion...");
+	
+	while(WiFi.status() != WL_CONNECTED)
+	{
+		Serial.print(".");
+		delay(100);
+	}
+	
+	Serial.println("\n");
+	Serial.println("Connexion etablie!");
+	Serial.print("Adresse IP: ");
+	Serial.println(WiFi.localIP());
 
-  // Route to serve index.html at root "/"
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+  //----------------------------------------------------SERVER
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
     request->send(SPIFFS, "/index.html", "text/html");
   });
 
-  // Route to turn the LED on
-  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request) {
-    digitalWrite(ledPin, HIGH);
-    Serial.println("LED turned ON");
-    request->send(200, "text/plain", "LED ON");
+  server.on("/w3.css", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    request->send(SPIFFS, "/w3.css", "text/css");
   });
 
-  // Route to turn the LED off
-  server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request) {
-    digitalWrite(ledPin, LOW);
-    Serial.println("LED turned OFF");
-    request->send(200, "text/plain", "LED OFF");
+  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    request->send(SPIFFS, "/script.js", "text/javascript");
   });
 
-  // Route to read brightness value
-  server.on("/lireLuminosite", HTTP_GET, [](AsyncWebServerRequest *request) {
-    int value = analogRead(ldrPin);
-    request->send(200, "text/plain", String(value));
+  server.on("/lireLuminosite", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    int val = analogRead(capteurLuminosite);
+    String luminosite = String(val);
+    request->send(200, "text/plain", luminosite);
   });
 
-  // Serve other static files in the SPIFFS (e.g. w3.css, script.js)
-  // This automatically serves files from SPIFFS that match their URI path
-  server.serveStatic("/", SPIFFS, "/");
+  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    digitalWrite(led, HIGH);
+    request->send(200);
+  });
 
-  // Start the server
+  server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    digitalWrite(led, LOW);
+    request->send(200);
+  });
+
   server.begin();
-  Serial.println("HTTP Server started");
+  Serial.println("Serveur actif!");
 }
 
-void loop() {
-  // ESPAsyncWebServer operates asynchronously, so nothing is needed here.
+void loop()
+{
+
 }
