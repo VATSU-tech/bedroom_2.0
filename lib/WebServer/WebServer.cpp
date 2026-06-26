@@ -1,3 +1,8 @@
+/**
+ * @file WebServer.cpp
+ * @brief Implementations of routing configurations and file mounts.
+ */
+
 #include "WebServer.h"
 #include "Storage.h"
 #include "Config.h"
@@ -9,27 +14,37 @@ WebServer::WebServer(WebCommunication& webComm)
     : _server(HTTP_PORT)
     , _webComm(webComm) {}
 
+/**
+ * @brief Registers handlers and starts the server daemon.
+ */
 void WebServer::begin() {
     registerRoutes();
     _server.begin();
     Utilities::logf(MODULE_NAME, "Web Server started on port %d", HTTP_PORT);
 }
 
+/**
+ * @brief Maps static paths and binds API callbacks.
+ * @details Static files (HTML, CSS, JS) are served directly from the SPIFFS partition 
+ *          accessible via the Storage module reference.
+ */
 void WebServer::registerRoutes() {
-    // Serve static files from Storage (SPIFFS)
+    // Serve HTML page
     _server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(Storage::getFS(), "/index.html", "text/html");
     });
 
+    // Serve CSS file
     _server.on("/w3.css", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(Storage::getFS(), "/w3.css", "text/css");
     });
 
+    // Serve Javascript client script
     _server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(Storage::getFS(), "/script.js", "text/javascript");
     });
 
-    // API Routes mapped to WebCommunication module
+    // Bind API Routes to WebCommunication methods
     _server.on("/lireLuminosite", HTTP_GET, [this](AsyncWebServerRequest *request) {
         _webComm.handleGetLuminosity(request);
     });
@@ -42,7 +57,7 @@ void WebServer::registerRoutes() {
         _webComm.handleLedControl(request, false);
     });
 
-    // Handle captive portal/unknown requests
+    // Fallback handler for not found / redirection requests
     _server.onNotFound([this](AsyncWebServerRequest *request) {
         _webComm.handleNotFound(request);
     });

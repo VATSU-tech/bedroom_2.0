@@ -1,10 +1,20 @@
+/**
+ * @file Storage.cpp
+ * @brief Implementations of filesystem utilities.
+ */
+
 #include "Storage.h"
 #include "Utilities.h"
 
 #define MODULE_NAME "Storage"
 
+/**
+ * @brief Initializes SPIFFS and logs results.
+ * @details Passing `true` to `SPIFFS.begin` forces formatting if mounting fails 
+ *          (helpful when flashing brand new ESP32 chips).
+ */
 bool Storage::begin() {
-    if (!SPIFFS.begin(true)) { // true allows formatting if mounting fails
+    if (!SPIFFS.begin(true)) {
         Utilities::log(MODULE_NAME, "Failed to mount SPIFFS filesystem.");
         return false;
     }
@@ -13,6 +23,9 @@ bool Storage::begin() {
     return true;
 }
 
+/**
+ * @brief Lists all files inside SPIFFS root path.
+ */
 void Storage::listFiles() {
     Utilities::log(MODULE_NAME, "Listing files on SPIFFS:");
     File root = SPIFFS.open("/");
@@ -29,10 +42,16 @@ void Storage::listFiles() {
     }
 }
 
+/**
+ * @brief Check existence of a file by path.
+ */
 bool Storage::fileExists(const String& path) {
     return SPIFFS.exists(path);
 }
 
+/**
+ * @brief Read file content helper.
+ */
 String Storage::readFile(const String& path) {
     if (!fileExists(path)) {
         Utilities::logf(MODULE_NAME, "File not found: %s", path.c_str());
@@ -48,6 +67,9 @@ String Storage::readFile(const String& path) {
     return content;
 }
 
+/**
+ * @brief Write file content helper.
+ */
 bool Storage::writeFile(const String& path, const String& content) {
     File file = SPIFFS.open(path, "w");
     if (!file) {
@@ -59,6 +81,9 @@ bool Storage::writeFile(const String& path, const String& content) {
     return written == content.length();
 }
 
+/**
+ * @brief Return standard Filesystem reference (needed by AsyncWebServer).
+ */
 fs::FS& Storage::getFS() {
     return SPIFFS;
 }

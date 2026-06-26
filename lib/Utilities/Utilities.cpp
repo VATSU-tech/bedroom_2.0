@@ -1,19 +1,35 @@
+/**
+ * @file Utilities.cpp
+ * @brief Implementations of serial initialization and formatted logging functions.
+ */
+
 #include "Utilities.h"
 #include <WiFi.h>
 #include "Config.h"
 
+/**
+ * @brief Start hardware Serial and print standard banner.
+ * @details Retries up to 3 seconds for Native USB Serial lines (like ESP32-S3/C3) to activate.
+ */
 void Utilities::initSerial() {
     Serial.begin(SERIAL_BAUD);
     while (!Serial && millis() < 3000) {
         delay(10);
     }
-    Serial.println("\n--- system startup ---");
+    Serial.println("\n=== SYSTEM STARTUP ===");
 }
 
+/**
+ * @brief Fetch the Wi-Fi MAC address.
+ */
 String Utilities::getMacAddress() {
     return WiFi.macAddress();
 }
 
+/**
+ * @brief Outputs standard log formatted as: [ModuleName] Message
+ * @details The logs are only compiled and sent to serial if ENABLE_DEBUG is true in Config.h.
+ */
 void Utilities::log(const String& module, const String& message) {
 #if ENABLE_DEBUG
     Serial.print("[");
@@ -23,6 +39,10 @@ void Utilities::log(const String& module, const String& message) {
 #endif
 }
 
+/**
+ * @brief Outputs formatted string log using vsnprintf buffer.
+ * @details Safeguards overflow using a fixed 256-character output buffer.
+ */
 void Utilities::logf(const String& module, const char* format, ...) {
 #if ENABLE_DEBUG
     Serial.print("[");
