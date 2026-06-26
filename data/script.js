@@ -1,5 +1,5 @@
 /**
- * SmartSchool Web Interface Client Script
+ * vatsu room Web Interface Client Script
  */
 
 // UI Elements
