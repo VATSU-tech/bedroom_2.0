@@ -1,101 +1,54 @@
 #include <Arduino.h>
-#include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>
-#include <WiFi.h>
+#include "Config.h"
+#include "Utilities.h"
+#include "Storage.h"
+#include "NetworkManager.h"
+#include "DomainManager.h"
+#include "WebCommunication.h"
+#include "WebServer.h"
+#include "RFID.h"
 
-const char *ssid = "Airtel_3031";
-const char *password = "123456789000";
+// Instantiate modules
+NetworkManager networkManager;
+DomainManager domainManager;
+WebCommunication webComm;
+WebServer webServer(webComm);
+RFID rfid;
 
-const int led = 2;
-const int capteurLuminosite = 34;
+void setup() {
+    // Initialize system utilities (Serial, etc.)
+    Utilities::initSerial();
+    Utilities::log("Main", "Initializing modules...");
 
-AsyncWebServer server(80);
+    // Initialize Storage (filesystem)
+    if (!Storage::begin()) {
+        Utilities::log("Main", "Critical error: Storage initialization failed!");
+    }
 
-void setup()
-{
-  //----------------------------------------------------Serial
-  Serial.begin(115200);
-  while(!Serial);
-  Serial.println("\n");
+    // Initialize Network (Station/AP mode according to Config)
+    networkManager.begin();
 
-  //----------------------------------------------------GPIO
-  pinMode(led, OUTPUT);
-  digitalWrite(led, LOW);
-  pinMode(capteurLuminosite, INPUT);
+    // Initialize Domain Name (mDNS / Captive Portal DNS)
+    domainManager.begin(networkManager.getActiveMode(), networkManager.getIPAddress());
 
-  //----------------------------------------------------SPIFFS
-  if(!SPIFFS.begin())
-  {
-    Serial.println("Erreur SPIFFS...");
-    return;
-  }
+    // Initialize Web Communication APIs
+    webComm.begin();
 
-  File root = SPIFFS.open("/");
-  File file = root.openNextFile();
+    // Start Web Server
+    webServer.begin();
 
-  while(file)
-  {
-    Serial.print("File: ");
-    Serial.println(file.name());
-    file.close();
-    file = root.openNextFile();
-  }
+    // Initialize RFID module
+    rfid.begin();
 
-  //----------------------------------------------------WIFI
-  WiFi.begin(ssid, password);
-	Serial.print("Tentative de connexion...");
-	
-	while(WiFi.status() != WL_CONNECTED)
-	{
-		Serial.print(".");
-		delay(100);
-	}
-	
-	Serial.println("\n");
-	Serial.println("Connexion etablie!");
-	Serial.print("Adresse IP: ");
-	Serial.println(WiFi.localIP());
-
-  //----------------------------------------------------SERVER
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/index.html", "text/html");
-  });
-
-  server.on("/w3.css", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/w3.css", "text/css");
-  });
-
-  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(SPIFFS, "/script.js", "text/javascript");
-  });
-
-  server.on("/lireLuminosite", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    int val = analogRead(capteurLuminosite);
-    String luminosite = String(val);
-    request->send(200, "text/plain", luminosite);
-  });
-
-  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    digitalWrite(led, HIGH);
-    request->send(200);
-  });
-
-  server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    digitalWrite(led, LOW);
-    request->send(200);
-  });
-
-  server.begin();
-  Serial.println("Serveur actif!");
+    Utilities::log("Main", "Initialization complete! System ready.");
 }
 
-void loop()
-{
-
+void loop() {
+    // Maintain module run loops
+    networkManager.handle();
+    domainManager.handle();
+    rfid.handle();
+    
+    // Tiny delay to yield time to underlying ESP RTOS & prevent watchdog reset
+    delay(true);
 }
