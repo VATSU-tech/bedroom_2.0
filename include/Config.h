@@ -51,7 +51,7 @@ const IPAddress STATIC_DNS(8, 8, 8, 8);
 // Local Domain & Server Configuration
 // ==========================================
 // Custom domain name (friendly address) accessible in both AP and Station mode
-#define LOCAL_DOMAIN "vatsuroom.local"
+#define LOCAL_DOMAIN "bedroom.local"
 #define HTTP_PORT 80
 
 #endif // CONFIG_H
