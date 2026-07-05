@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief Application Entry Point for the SmartSchool ESP32 project.
+ * @brief Application Entry Point for the bedroom ESP32 project.
  * @details This file implements the main startup initializations and runtime loops.
  *          By utilizing a modular design, this file only serves to orchestrate 
  *          and trigger handlers inside the individual system modules.
