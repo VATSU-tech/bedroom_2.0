@@ -163,7 +163,7 @@ Je ne veux plus taper une adresse IP du type :
 Je souhaite utiliser une adresse plus conviviale, par exemple :
 
 ```
-http://smartschool.local
+http://bedroom.local
 
 ou
 
