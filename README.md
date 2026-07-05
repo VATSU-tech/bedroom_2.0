@@ -1,4 +1,4 @@
-# 🚀 SmartSchool ESP32 - Architecture Modulaire & Interface Premium
+# 🚀 bedroom ESP32 - Architecture Modulaire & Interface Premium
 
 Ce projet est une refonte complète et professionnelle d'une application IoT pour ESP32 développée sous **PlatformIO**. L'architecture monolithique d'origine a été restructurée en modules de responsabilité unique, découplés, réutilisables et hautement documentés.
 
@@ -57,7 +57,7 @@ vatsu_bedroom_2.0/
 
 ### 1. Dossier `include/` (Configuration Globale)
 
-* **[Config.h](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/include/Config.h)** : C'est le **cœur de contrôle** du projet. Il permet d'activer ou de désactiver des fonctionnalités (par exemple `ENABLE_RFID`), de configurer le mode Wi-Fi actif, de déclarer une liste ordonnée de réseaux Wi-Fi de secours, et de spécifier le nom de domaine convivial (`http://smartschool.local`).
+* **[Config.h](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/include/Config.h)** : C'est le **cœur de contrôle** du projet. Il permet d'activer ou de désactiver des fonctionnalités (par exemple `ENABLE_RFID`), de configurer le mode Wi-Fi actif, de déclarer une liste ordonnée de réseaux Wi-Fi de secours, et de spécifier le nom de domaine convivial (`http://bedroom.local`).
 * **[Definitions.h](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/include/Definitions.h)** : Définit les types génériques comme la structure de stockage des identifiants Wi-Fi et les états configurables.
 * **[Pins.h](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/include/Pins.h)** : Mappe de manière lisible les ports de l'ESP32. La LED est sur le pin 2 et le capteur analogique de luminosité (LDR) sur la broche 34.
 * **[Constants.h](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/include/Constants.h)** : Regroupe les valeurs numériques figées comme le débit en bauds série (115200) ou les délais de scrutation matériels.
@@ -71,7 +71,7 @@ vatsu_bedroom_2.0/
   * *Mode Station (STA)* : Il essaie de s'associer aux SSID configurés dans l'ordre défini. Si le réseau tombe, il tente de se reconnecter périodiquement de manière non-bloquante.
   * *Mode Point d'Accès (AP)* : Il monte son propre hotspot Wi-Fi sécurisé avec l'adresse IP par défaut `192.168.4.1`.
 * **[DomainManager](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/DomainManager/DomainManager.h)** : Assure la convivialité d'accès :
-  * Démarre un répondeur **mDNS** pour résoudre l'adresse `.local` (ex : `http://smartschool.local`) sur les terminaux compatibles.
+  * Démarre un répondeur **mDNS** pour résoudre l'adresse `.local` (ex : `http://bedroom.local`) sur les terminaux compatibles.
   * Démarre un **serveur DNS captif** en mode AP pour capturer toutes les requêtes DNS externes et renvoyer l'adresse IP de l'ESP32.
 * **[WebCommunication](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/WebCommunication/WebCommunication.h)** : Gère les appels API HTTP. Il isole la manipulation des GPIOs et des capteurs et retourne les résultats au format standardisé JSON (`{"status":"success", "value":1024}`).
 * **[WebServer](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/WebServer/WebServer.h)** : Contient le serveur Web asynchrone. Il associe les requêtes d'URL statiques (HTML, CSS, JS) à la mémoire flash `SPIFFS` et délègue les chemins d'API `/on`, `/off`, `/lireLuminosite` au module `WebCommunication`.
@@ -164,11 +164,11 @@ const WifiNetwork WIFI_NETWORKS[] = {
 };
 
 // 3. Configuration du Hotspot (Mode AP)
-#define AP_SSID "ESP32_SmartSchool"
+#define AP_SSID "ESP32_bedroom"
 #define AP_PASSWORD "12345678"
 
 // 4. Adresse de domaine conviviale
-#define LOCAL_DOMAIN "smartschool.local"
+#define LOCAL_DOMAIN "bedroom.local"
 
 // 5. Activation des modules complémentaires
 #define ENABLE_DEBUG true
@@ -181,8 +181,8 @@ const WifiNetwork WIFI_NETWORKS[] = {
 
 ### 📶 Captive Portal & DNS local
 
-* **En mode Station** : Connectez votre ordinateur/smartphone sur le même réseau Wi-Fi. Tapez `http://smartschool.local` dans votre navigateur.
-* **En mode Point d'Accès** : Connectez-vous au réseau Wi-Fi diffusé par la carte (`ESP32_SmartSchool`). Le serveur DNS capte toutes les requêtes. Ouvrez n'importe quel site internet (ex : `http://test.com`) ou tapez `http://smartschool.local` pour être redirigé vers l'interface.
+* **En mode Station** : Connectez votre ordinateur/smartphone sur le même réseau Wi-Fi. Tapez `http://bedroom.local` dans votre navigateur.
+* **En mode Point d'Accès** : Connectez-vous au réseau Wi-Fi diffusé par la carte (`ESP32_bedroom`). Le serveur DNS capte toutes les requêtes. Ouvrez n'importe quel site internet (ex : `http://test.com`) ou tapez `http://bedroom.local` pour être redirigé vers l'interface.
 
 ### 🛡️ API JSON standardisée
 
@@ -216,6 +216,6 @@ Le dialogue entre le code JavaScript du navigateur (`script.js`) et la carte s'e
 
 ### L'adresse `.local` ne s'ouvre pas
 
-* Assurez-vous d'avoir saisi `http://` devant le nom de domaine (`http://smartschool.local`).
+* Assurez-vous d'avoir saisi `http://` devant le nom de domaine (`http://bedroom.local`).
 * Certains systèmes d'exploitation (notamment Android) ne prennent pas en charge mDNS par défaut. Si vous êtes en mode Station, essayez depuis un PC Windows/macOS/Linux, ou utilisez l'IP attribuée affichée dans le moniteur série.
-* En mode AP, tout nom de domaine (comme `http://smartschool.local`) sera redirigé automatiquement grâce au portail captif DNS.
+* En mode AP, tout nom de domaine (comme `http://bedroom.local`) sera redirigé automatiquement grâce au portail captif DNS.
