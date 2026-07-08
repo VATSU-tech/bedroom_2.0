@@ -29,13 +29,14 @@
 // Define the credentials of available Wi-Fi networks tried in order
 const WifiNetwork WIFI_NETWORKS[] = {
     {"Airtel_3031", "123456789000"},
+    {"Kali","123456789000"},
     {"DELTA-FORCE-5G", "L2info@reserve=+"},
 };
 const size_t WIFI_NETWORKS_COUNT = sizeof(WIFI_NETWORKS) / sizeof(WIFI_NETWORKS[0]);
 
 // --- Wi-Fi Access Point (AP) Mode ---
-#define AP_SSID "ESP32 VA room"
-#define AP_PASSWORD "12345678"
+#define AP_SSID "ESP VA room"
+#define AP_PASSWORD "1 mupaka 8"
 #define AP_CHANNEL 1
 #define AP_HIDDEN 0
 #define AP_MAX_CONNECTION 4
