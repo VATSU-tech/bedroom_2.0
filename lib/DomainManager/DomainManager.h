@@ -2,7 +2,11 @@
 #define DOMAIN_MANAGER_H
 
 #include <Arduino.h>
+#ifdef ESP32
 #include <ESPmDNS.h>
+#elif defined(ESP8266)
+#include <ESP8266mDNS.h>
+#endif
 #include <DNSServer.h>
 #include "Config.h"
 
