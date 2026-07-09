@@ -35,7 +35,7 @@ void NetworkManager::begin() {
  */
 void NetworkManager::initStationMode() {
     Utilities::log(MODULE_NAME, "Starting in STATION mode...");
-    WiFi.mode(WIFI_MODE_STA);
+    WiFi.mode(WIFI_STA);
     
     if (USE_STATIC_IP) {
         if (WiFi.config(STATIC_IP, STATIC_GATEWAY, STATIC_SUBNET, STATIC_DNS)) {
@@ -62,7 +62,7 @@ void NetworkManager::initStationMode() {
  */
 void NetworkManager::initAPMode() {
     Utilities::log(MODULE_NAME, "Starting in ACCESS POINT mode...");
-    WiFi.mode(WIFI_MODE_AP);
+    WiFi.mode(WIFI_AP);
     
     bool success = WiFi.softAP(AP_SSID, AP_PASSWORD, AP_CHANNEL, AP_HIDDEN, AP_MAX_CONNECTION);
     if (success) {

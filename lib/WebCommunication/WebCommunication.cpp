@@ -4,7 +4,11 @@
  */
 
 #include "WebCommunication.h"
+#ifdef ESP32
 #include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 #include "Config.h"
 #include "Utilities.h"
 #include "Pins.h"
@@ -83,10 +87,16 @@ bool WebCommunication::parseAndValidatePin(AsyncWebServerRequest *request, const
     String paramValue = request->getParam(paramName)->value();
     int val = paramValue.toInt();
     
-    // ESP32 has physical GPIO range between 0 and 39
+    // Validate GPIO range based on platform
+#ifdef ESP32
     if (val < 0 || val > 39) {
         return false;
     }
+#elif defined(ESP8266)
+    if (val < 0 || val > 16) {
+        return false;
+    }
+#endif
     outPin = val;
     return true;
 }
