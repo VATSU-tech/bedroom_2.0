@@ -14,7 +14,13 @@
  *          (helpful when flashing brand new ESP32 chips).
  */
 bool Storage::begin() {
-    if (!SPIFFS.begin(true)) {
+#ifdef ESP32
+    bool success = SPIFFS.begin(true);
+#elif defined(ESP8266)
+    bool success = SPIFFS.begin();
+#endif
+
+    if (!success) {
         Utilities::log(MODULE_NAME, "Failed to mount SPIFFS filesystem.");
         return false;
     }
@@ -28,6 +34,7 @@ bool Storage::begin() {
  */
 void Storage::listFiles() {
     Utilities::log(MODULE_NAME, "Listing files on SPIFFS:");
+#ifdef ESP32
     File root = SPIFFS.open("/");
     if (!root) {
         Utilities::log(MODULE_NAME, "Failed to open root directory.");
@@ -40,6 +47,12 @@ void Storage::listFiles() {
         file.close();
         file = root.openNextFile();
     }
+#elif defined(ESP8266)
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+        Utilities::logf(MODULE_NAME, "  File: %s, Size: %d bytes", dir.fileName().c_str(), (int)dir.fileSize());
+    }
+#endif
 }
 
 /**
