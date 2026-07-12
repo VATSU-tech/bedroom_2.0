@@ -8,12 +8,20 @@
 
 #define MODULE_NAME "DomainManager"
 
-DomainManager::DomainManager() : _mode(WIFI_MODE_STA_SEL), _dnsActive(false) {}
+DomainManager::DomainManager() 
+    : _mode(WIFI_MODE_STA_SEL)
+    , _dnsActive(false)
+    , _lastIP("")
+    , _wasConnected(false) {}
 
 void DomainManager::begin(WifiModeSelection mode, const String& ipAddress) {
     _mode = mode;
-    
-    // Clean up domain name (remove http:// and .local for setting up mDNS)
+    _lastIP = ipAddress;
+    _wasConnected = (WiFi.status() == WL_CONNECTED || _mode == WIFI_MODE_AP_SEL);
+    setupServices();
+}
+
+void DomainManager::setupServices() {
     String domain = LOCAL_DOMAIN;
     domain.replace("http://", "");
     domain.replace("https://", "");
@@ -23,33 +31,63 @@ void DomainManager::begin(WifiModeSelection mode, const String& ipAddress) {
         mdnsHost = mdnsHost.substring(0, mdnsHost.length() - 6);
     }
     
-    // Initialize mDNS
+    if (_dnsActive) {
+        _dnsServer.stop();
+        _dnsActive = false;
+    }
+    
+#ifdef ESP32
+    MDNS.end();
+#endif
+
     if (MDNS.begin(mdnsHost.c_str())) {
-        Utilities::logf(MODULE_NAME, "mDNS responder started. Hostname: %s.local", mdnsHost.c_str());
+        Utilities::logf(MODULE_NAME, "mDNS responder started. Hostname: %s.local (IP: %s)", mdnsHost.c_str(), _lastIP.c_str());
         MDNS.addService("http", "tcp", HTTP_PORT);
     } else {
         Utilities::log(MODULE_NAME, "Error setting up MDNS responder!");
     }
     
-    // If in AP mode, start DNS server to redirect all requests to ESP IP
-    if (_mode == WIFI_MODE_AP_SEL) {
-        IPAddress apIP;
-        apIP.fromString(ipAddress);
-        
-        // Port 53 is the standard DNS port
+    IPAddress currentIP;
+    if (currentIP.fromString(_lastIP)) {
         _dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-        bool success = _dnsServer.start(53, "*", apIP);
-        if (success) {
-            Utilities::log(MODULE_NAME, "DNS Server started for captive portal redirect.");
-            _dnsActive = true;
+        if (_mode == WIFI_MODE_AP_SEL) {
+            bool success = _dnsServer.start(53, "*", currentIP);
+            if (success) {
+                Utilities::log(MODULE_NAME, "DNS Server started for captive portal redirect (AP mode).");
+                _dnsActive = true;
+            } else {
+                Utilities::log(MODULE_NAME, "Failed to start DNS Server (AP).");
+            }
         } else {
-            Utilities::log(MODULE_NAME, "Failed to start DNS Server.");
-            _dnsActive = false;
+            bool success = _dnsServer.start(53, domain, currentIP);
+            if (success) {
+                Utilities::logf(MODULE_NAME, "DNS Server started to resolve '%s' locally (Station mode).", domain.c_str());
+                _dnsActive = true;
+            } else {
+                Utilities::log(MODULE_NAME, "Failed to start DNS Server (Station).");
+            }
         }
     }
 }
 
 void DomainManager::handle() {
+    bool currentlyConnected = (WiFi.status() == WL_CONNECTED || _mode == WIFI_MODE_AP_SEL);
+    String currentIP = (_mode == WIFI_MODE_AP_SEL) ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+    
+    if (currentlyConnected && (!_wasConnected || currentIP != _lastIP)) {
+        Utilities::log(MODULE_NAME, "IP changed or connection established. Restarting services...");
+        _lastIP = currentIP;
+        _wasConnected = true;
+        setupServices();
+    } else if (!currentlyConnected && _wasConnected) {
+        Utilities::log(MODULE_NAME, "Wi-Fi connection lost. Stopping DNS...");
+        if (_dnsActive) {
+            _dnsServer.stop();
+            _dnsActive = false;
+        }
+        _wasConnected = false;
+    }
+
     if (_dnsActive) {
         _dnsServer.processNextRequest();
     }
@@ -57,3 +95,4 @@ void DomainManager::handle() {
     MDNS.update();
 #endif
 }
+

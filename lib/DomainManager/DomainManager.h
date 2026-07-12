@@ -17,9 +17,13 @@ public:
     void handle();
 
 private:
+    void setupServices();
+
     WifiModeSelection _mode;
     DNSServer _dnsServer;
     bool _dnsActive;
+    String _lastIP;
+    bool _wasConnected;
 };
 
 #endif // DOMAIN_MANAGER_H
