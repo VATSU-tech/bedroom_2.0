@@ -77,6 +77,31 @@ async function updateLuminosity() {
             if (ldrValueEl) {
                 ldrValueEl.textContent = data.value;
             }
+            
+            // Platform conditional display
+            if (data.platform) {
+                const platformEl = document.getElementById("platformInfo");
+                const btnOn = document.getElementById("btnOn");
+                const btnOff = document.getElementById("btnOff");
+                
+                if (platformEl) {
+                    if (data.platform === "ESP8266") {
+                        platformEl.textContent = "Carte détectée : ESP8266 (LED Active-Low)";
+                        platformEl.style.color = "#fbbf24"; // Amber/gold for emphasis
+                        if (btnOn) btnOn.textContent = "ON (LOW)";
+                        if (btnOff) btnOff.textContent = "OFF (HIGH)";
+                    } else if (data.platform === "ESP32") {
+                        platformEl.textContent = "Carte détectée : ESP32 (LED Active-High)";
+                        platformEl.style.color = "#60a5fa"; // Soft blue
+                        if (btnOn) btnOn.textContent = "ON (HIGH)";
+                        if (btnOff) btnOff.textContent = "OFF (LOW)";
+                    } else {
+                        platformEl.textContent = "Carte détectée : " + data.platform;
+                        platformEl.style.color = "#94a3b8";
+                    }
+                }
+            }
+            
             setConnected(true);
         } else {
             setConnected(false);
