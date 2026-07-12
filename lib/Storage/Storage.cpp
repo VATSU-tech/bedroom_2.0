@@ -9,33 +9,33 @@
 #define MODULE_NAME "Storage"
 
 /**
- * @brief Initializes SPIFFS and logs results.
- * @details Passing `true` to `SPIFFS.begin` forces formatting if mounting fails 
+ * @brief Initializes LittleFS and logs results.
+ * @details Passing `true` to `LittleFS.begin` forces formatting if mounting fails 
  *          (helpful when flashing brand new ESP32 chips).
  */
 bool Storage::begin() {
 #ifdef ESP32
-    bool success = SPIFFS.begin(true);
+    bool success = LittleFS.begin(true);
 #elif defined(ESP8266)
-    bool success = SPIFFS.begin();
+    bool success = LittleFS.begin();
 #endif
 
     if (!success) {
-        Utilities::log(MODULE_NAME, "Failed to mount SPIFFS filesystem.");
+        Utilities::log(MODULE_NAME, "Failed to mount LittleFS filesystem.");
         return false;
     }
-    Utilities::log(MODULE_NAME, "SPIFFS mounted successfully.");
+    Utilities::log(MODULE_NAME, "LittleFS mounted successfully.");
     listFiles();
     return true;
 }
 
 /**
- * @brief Lists all files inside SPIFFS root path.
+ * @brief Lists all files inside LittleFS root path.
  */
 void Storage::listFiles() {
-    Utilities::log(MODULE_NAME, "Listing files on SPIFFS:");
+    Utilities::log(MODULE_NAME, "Listing files on LittleFS:");
 #ifdef ESP32
-    File root = SPIFFS.open("/");
+    File root = LittleFS.open("/");
     if (!root) {
         Utilities::log(MODULE_NAME, "Failed to open root directory.");
         return;
@@ -48,7 +48,7 @@ void Storage::listFiles() {
         file = root.openNextFile();
     }
 #elif defined(ESP8266)
-    Dir dir = SPIFFS.openDir("/");
+    Dir dir = LittleFS.openDir("/");
     while (dir.next()) {
         Utilities::logf(MODULE_NAME, "  File: %s, Size: %d bytes", dir.fileName().c_str(), (int)dir.fileSize());
     }
@@ -59,7 +59,7 @@ void Storage::listFiles() {
  * @brief Check existence of a file by path.
  */
 bool Storage::fileExists(const String& path) {
-    return SPIFFS.exists(path);
+    return LittleFS.exists(path);
 }
 
 /**
@@ -70,7 +70,7 @@ String Storage::readFile(const String& path) {
         Utilities::logf(MODULE_NAME, "File not found: %s", path.c_str());
         return "";
     }
-    File file = SPIFFS.open(path, "r");
+    File file = LittleFS.open(path, "r");
     if (!file) {
         Utilities::logf(MODULE_NAME, "Failed to open file: %s", path.c_str());
         return "";
@@ -84,7 +84,7 @@ String Storage::readFile(const String& path) {
  * @brief Write file content helper.
  */
 bool Storage::writeFile(const String& path, const String& content) {
-    File file = SPIFFS.open(path, "w");
+    File file = LittleFS.open(path, "w");
     if (!file) {
         Utilities::logf(MODULE_NAME, "Failed to open file for writing: %s", path.c_str());
         return false;
@@ -98,5 +98,6 @@ bool Storage::writeFile(const String& path, const String& content) {
  * @brief Return standard Filesystem reference (needed by AsyncWebServer).
  */
 fs::FS& Storage::getFS() {
-    return SPIFFS;
+    return LittleFS;
 }
+

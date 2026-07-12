@@ -1,6 +1,6 @@
 /**
  * @file Storage.h
- * @brief Header for SPIFFS filesystem wrapper module.
+ * @brief Header for LittleFS filesystem wrapper module.
  * @details Handles mounting flash storage, reading/writing files, and listing files.
  */
 
@@ -9,24 +9,22 @@
 
 #include <Arduino.h>
 #include <FS.h>
-#ifdef ESP32
-#include <SPIFFS.h>
-#endif
+#include <LittleFS.h>
 
 /**
  * @class Storage
- * @brief Encapsulates ESP32 SPIFFS filesystem routines.
+ * @brief Encapsulates ESP32/ESP8266 LittleFS filesystem routines.
  */
 class Storage {
 public:
     /**
-     * @brief Mounts the SPIFFS filesystem partition.
+     * @brief Mounts the LittleFS filesystem partition.
      * @return true if mounted successfully, false on error.
      */
     static bool begin();
 
     /**
-     * @brief Lists all files and sizes stored in the SPIFFS partition to the serial log.
+     * @brief Lists all files and sizes stored in the LittleFS partition to the serial log.
      */
     static void listFiles();
 
@@ -54,9 +52,10 @@ public:
 
     /**
      * @brief Retrieves the file system reference.
-     * @return Reference to fs::FS instance (SPIFFS).
+     * @return Reference to fs::FS instance (LittleFS).
      */
     static fs::FS& getFS();
 };
 
 #endif // STORAGE_H
+
