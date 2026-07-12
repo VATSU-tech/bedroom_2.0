@@ -24,7 +24,11 @@ WebCommunication::WebCommunication()
  */
 void WebCommunication::begin() {
     pinMode(_ledPin, OUTPUT);
-    digitalWrite(_ledPin, LOW);
+#ifdef ESP8266
+    digitalWrite(_ledPin, HIGH); // Active-low: HIGH is OFF
+#else
+    digitalWrite(_ledPin, LOW);  // Active-high: LOW is OFF
+#endif
     pinMode(_ldrPin, INPUT);
     Utilities::log(MODULE_NAME, "GPIO initialized for LED and LDR sensor.");
 }
@@ -36,11 +40,20 @@ void WebCommunication::begin() {
 void WebCommunication::handleGetLuminosity(AsyncWebServerRequest *request) {
     int val = analogRead(_ldrPin);
     
+    String platformName = 
+#ifdef ESP32
+        "ESP32";
+#elif defined(ESP8266)
+        "ESP8266";
+#else
+        "Unknown";
+#endif
+
     // Format JSON payload response
-    String jsonResponse = "{\"status\":\"success\",\"value\":" + String(val) + "}";
+    String jsonResponse = "{\"status\":\"success\",\"value\":" + String(val) + ",\"platform\":\"" + platformName + "\"}";
     
     request->send(200, "application/json", jsonResponse);
-    Utilities::logf(MODULE_NAME, "API /lireLuminosite called. Value: %d", val);
+    Utilities::logf(MODULE_NAME, "API /lireLuminosite called. Value: %d, Platform: %s", val, platformName.c_str());
 }
 
 /**
@@ -48,7 +61,11 @@ void WebCommunication::handleGetLuminosity(AsyncWebServerRequest *request) {
  * @details Performs physical write on the LED pin and updates API client with active status.
  */
 void WebCommunication::handleLedControl(AsyncWebServerRequest *request, bool state) {
-    digitalWrite(_ledPin, state ? HIGH : LOW);
+#ifdef ESP8266
+    digitalWrite(_ledPin, state ? LOW : HIGH); // Active-low
+#else
+    digitalWrite(_ledPin, state ? HIGH : LOW); // Active-high
+#endif
     
     String stateStr = state ? "ON" : "OFF";
     String jsonResponse = "{\"status\":\"success\",\"led\":\"" + stateStr + "\"}";

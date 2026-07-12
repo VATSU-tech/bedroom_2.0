@@ -25,7 +25,7 @@ void WebServer::begin() {
 
 /**
  * @brief Maps static paths and binds API callbacks.
- * @details Static files (HTML, CSS, JS) are served directly from the SPIFFS partition 
+ * @details Static files (HTML, CSS, JS) are served directly from the LittleFS partition 
  *          accessible via the Storage module reference.
  */
 void WebServer::registerRoutes() {
