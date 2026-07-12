@@ -42,7 +42,7 @@ RFID rfid;
 // ==========================================
 /**
  * @brief Setup routine called once on microcontroller boot.
- * @details Initializes serial communication, mounts the SPIFFS filesystem partition,
+ * @details Initializes serial communication, mounts the LittleFS filesystem partition,
  *          initiates the Wi-Fi client or hotspot, sets up domain routing,
  *          configures web servers, and starts auxiliary sensors.
  */
@@ -51,7 +51,7 @@ void setup() {
     Utilities::initSerial();
     Utilities::log("Main", "Initializing modules...");
 
-    // 2. Mount and list files from SPIFFS flash partition
+    // 2. Mount and list files from LittleFS flash partition
     if (!Storage::begin()) {
         Utilities::log("Main", "Critical error: Storage initialization failed!");
     }
