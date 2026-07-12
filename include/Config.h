@@ -23,7 +23,7 @@
 // Wi-Fi Configuration
 // ==========================================
 // Choice of mode: WIFI_MODE_STA_SEL or WIFI_MODE_AP_SEL
-#define SELECTED_WIFI_MODE WIFI_MODE_STA_SEL
+#define SELECTED_WIFI_MODE WIFI_MODE_AP_SEL
 
 // --- Wi-Fi Station (STA) Mode ---
 // Define the credentials of available Wi-Fi networks tried in order
