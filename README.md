@@ -33,7 +33,7 @@ vatsu_bedroom_2.0/
 │
 ├── lib/                       # Modules applicatifs (compilés séparément)
 │   ├── Utilities/             # Logs centralisés (Serial)
-│   ├── Storage/               # Gestionnaire de fichiers flash (SPIFFS)
+│   ├── Storage/               # Gestionnaire de fichiers flash (LittleFS)
 │   ├── NetworkManager/        # Connexion Wi-Fi intelligente (STA/AP) et reconnexions
 │   ├── DomainManager/         # Résolution d'adresse (mDNS) & DNS local (Captive Portal)
 │   ├── WebCommunication/      # Logiciels d'API, validation et réponses JSON
@@ -43,7 +43,7 @@ vatsu_bedroom_2.0/
 ├── src/
 │   └── main.cpp               # Point d'entrée principal (setup et loop simplifiés)
 │
-├── data/                      # Ressources du site web (servies via SPIFFS)
+├── data/                      # Ressources du site web (servies via LittleFS)
 │   ├── index.html             # Interface utilisateur sémantique
 │   ├── w3.css                 # Style esthétique et responsive (Dark Premium CSS)
 │   └── script.js              # Script AJAX moderne (API Fetch)
@@ -65,8 +65,8 @@ vatsu_bedroom_2.0/
 
 ### 2. Dossier `lib/` (Librairies Métiers)
 
-* **[Utilities](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/Utilities/Utilities.h)** : Fournit un mécanisme d'affichage console formaté, identifiant automatiquement le module appelant (ex : `[Storage] SPIFFS mounted successfully.`).
-* **[Storage](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/Storage/Storage.h)** : Encapsule la gestion du système de fichiers `SPIFFS`. Il s'assure du bon montage de la mémoire flash à l'allumage et peut lister le contenu complet de la mémoire.
+* **[Utilities](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/Utilities/Utilities.h)** : Fournit un mécanisme d'affichage console formaté, identifiant automatiquement le module appelant (ex : `[Storage] LittleFS mounted successfully.`).
+* **[Storage](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/Storage/Storage.h)** : Encapsule la gestion du système de fichiers `LittleFS`. Il s'assure du bon montage de la mémoire flash à l'allumage et peut lister le contenu complet de la mémoire.
 * **[NetworkManager](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/NetworkManager/NetworkManager.h)** : Gère de façon autonome la liaison réseau :
   * *Mode Station (STA)* : Il essaie de s'associer aux SSID configurés dans l'ordre défini. Si le réseau tombe, il tente de se reconnecter périodiquement de manière non-bloquante.
   * *Mode Point d'Accès (AP)* : Il monte son propre hotspot Wi-Fi sécurisé avec l'adresse IP par défaut `192.168.4.1`.
@@ -74,7 +74,7 @@ vatsu_bedroom_2.0/
   * Démarre un répondeur **mDNS** pour résoudre l'adresse `.local` (ex : `http://bedroom.local`) sur les terminaux compatibles.
   * Démarre un **serveur DNS captif** en mode AP pour capturer toutes les requêtes DNS externes et renvoyer l'adresse IP de l'ESP32.
 * **[WebCommunication](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/WebCommunication/WebCommunication.h)** : Gère les appels API HTTP. Il isole la manipulation des GPIOs et des capteurs et retourne les résultats au format standardisé JSON (`{"status":"success", "value":1024}`).
-* **[WebServer](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/WebServer/WebServer.h)** : Contient le serveur Web asynchrone. Il associe les requêtes d'URL statiques (HTML, CSS, JS) à la mémoire flash `SPIFFS` et délègue les chemins d'API `/on`, `/off`, `/lireLuminosite` au module `WebCommunication`.
+* **[WebServer](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/WebServer/WebServer.h)** : Contient le serveur Web asynchrone. Il associe les requêtes d'URL statiques (HTML, CSS, JS) à la mémoire flash `LittleFS` et délègue les chemins d'API `/on`, `/off`, `/lireLuminosite` au module `WebCommunication`.
 * **[RFID](file:///media/work/Scripts/IoT/PlatformIO/vatsu_bedroom_2.0/lib/RFID/RFID.h)** : Module squelette conçu pour l'intégration future de capteurs d'identification (ex : RC522) afin d'assurer l'évolutivité.
 
 ---
@@ -125,7 +125,7 @@ Transfère le binaire compilé (`firmware.bin`) dans la mémoire programme de l'
   pio run --target upload
   ```
 
-### Étape 4 : Téléversement des fichiers Web (Upload SPIFFS/Filesystem)
+### Étape 4 : Téléversement des fichiers Web (Upload LittleFS/Filesystem)
 
 C'est une étape cruciale pour ce projet. Le site Web (HTML, CSS, JS) situé dans le dossier `data/` doit être écrit dans la mémoire flash de l'ESP32 afin d'être servi par le module `Storage`.
 
@@ -210,7 +210,7 @@ Le dialogue entre le code JavaScript du navigateur (`script.js`) et la carte s'e
 
 ## 🔍 Dépannage & Commandes Utiles
 
-### Le site affiche "Erreur SPIFFS..." ou ne charge pas les styles
+### Le site affiche "Erreur LittleFS..." ou ne charge pas les styles
 
 👉 Vous avez probablement oublié d'uploader les fichiers statiques. Exécutez la commande : `pio run -t uploadfs`.
 
